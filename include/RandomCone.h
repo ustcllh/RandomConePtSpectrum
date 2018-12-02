@@ -64,12 +64,12 @@ private:
   float rcEta;
 
   static const int nbinscentTab_data = 201;
-  const std::vector<float> centTab_data;
+  static const std::vector<float> centTab_data;
 
   static const int nbinscentTab_MC = 21;
-  const std::vector<float> centTab_MC_Drum5F;
-  const std::vector<float> centTab_MC_Cymbal5F;
-  const std::vector<float> centTab_MC_Cymbal5Ev8;
+  static const std::vector<float> centTab_MC_Drum5F;
+  static const std::vector<float> centTab_MC_Cymbal5F;
+  static const std::vector<float> centTab_MC_Cymbal5Ev8;
 
 
 };
