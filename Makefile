@@ -1,4 +1,5 @@
-CC=g++
+CXX=g++
+CXXFLAGS=-g -std=c++11 -Wall -pedantic
 INC=include
 SRC=src
 
@@ -8,7 +9,7 @@ CPPFLAG=-I$(INC)
 all: runRandomConePtSpectrum
 
 runRandomConePtSpectrum: runRandomConePtSpectrum.C
-	$(CC) -o $@ $^ $(CPPFLAG) $(ROOTFLAG)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(CPPFLAG) $(ROOTFLAG)
 
 .PHONY:
 	clean
