@@ -8,8 +8,11 @@ CPPFLAG=-I$(INC)
 
 all: runRandomConePtSpectrum
 
-runRandomConePtSpectrum: runRandomConePtSpectrum.C
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(CPPFLAG) $(ROOTFLAG)
+RandomCone.o: $(SRC)/RandomCone.C
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(CPPFLAG) $(ROOTFLAG)
+
+runRandomConePtSpectrum: runRandomConePtSpectrum.C RandomCone.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(ROOTFLAG)
 
 .PHONY:
 	clean

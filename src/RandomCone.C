@@ -1,4 +1,4 @@
-#include "RandomConePtSpectrum.h"
+#include "RandomCone.h"
 
 #include <iostream>
 #include <vector>
@@ -10,10 +10,10 @@
 #include "TRandom3.h"
 
 
-RandomCone::Init(){
-  input_f = TFile(input_str, "READ");
-  output_f = TFile(output_str, "RECREATE");
-  if(!input || !output){
+void RandomCone::Init(){
+  input_f = new TFile(input_str, "READ");
+  output_f = new TFile(output_str, "RECREATE");
+  if(!input_f || !output_f){
     std::cout << "File pointer: Null!" << std::endl;
     exit(-1);
   }
@@ -66,28 +66,28 @@ RandomCone::Init(){
   evt_t->SetBranchStatus("hiHF", &hiHF);
 
   tout = new TTree("randomCone", "randomCone");
-  tout->SetBranchAddress("hiBin", &hiBin, "hiBin/I");
-  tout->SetBranchAddress("rcPt", &rcpt, "rcPt/F");
-  tout->SetBranchAddress("rcEta", &rcEta, "rcEta/F");
-  tout->SetBranchAddress("rcPhi", &rcPhi, "rcPhi/F");
+  tout->Branch("hiBin", &hiBin, "hiBin/I");
+  tout->Branch("rcPt", &rcPt, "rcPt/F");
+  tout->Branch("rcEta", &rcEta, "rcEta/F");
+  tout->Branch("rcPhi", &rcPhi, "rcPhi/F");
 
   rng = new TRandom3();
 
   std::cout << "Init(): nEvents " << nEvents << std::endl;
   std::cout << "Init(): Initialization Complete! " << nEvents << std::endl;
 
-};
+}
 
 void RandomCone::Execute(){
   std::vector<randomcone> rc_v;
   for(int ievt=0; ievt<nEvents; ievt++){
-    rc_v->clear();
+    rc_v.clear();
 
     pfcand_t->GetEntry(ievt);
     skim_t->GetEntry(ievt);
     evt_t->GetEntry(ievt);
 
-    if(!globalSelection) continue;
+    if(!globalSelection()) continue;
 
     hiBin = gethiBinfromhiHF(hiHF);
 
@@ -110,15 +110,15 @@ void RandomCone::Execute(){
 
     // median index
     int midx = nrc/2 + 1;
-    rcEta = rc_v[midx];
-    rcPhi = rc_v[midx];
-    rcPt = rc_v[midx];
+    rcEta = rc_v[midx].eta;
+    rcPhi = rc_v[midx].phi;
+    rcPt = rc_v[midx].pt;
 
     tout->Fill();
   }
 
   std::cout << "Execute(): Execution Complete!" << std::endl;
-};
+}
 
 void RandomCone::End(){
   delete pfId;
@@ -130,33 +130,29 @@ void RandomCone::End(){
   output_f->cd();
   tout->Write();
   input_f->Close();
-  output_f->Close()
+  output_f->Close();
 
   std::cout<< "End(): Process End!" << std::endl;
 
-};
+}
 
 int RandomCone::gethiBinfromhiHF(float& EHF){
   int binpos = 0;
-  switch(centTab){
-    case 0:
-      auto it =  std::upper_bound(centTab_data.begin(), centTab_data.end(), EHF);
-      binpos = it - centTab_data.begin();
+  switch(centTable_id){
+    case Data:
+      binpos = std::upper_bound(centTab_data.begin(), centTab_data.end(), EHF) - centTab_data.begin();
       return 200-binpos;
-    case 1:
-      auto it = std::upper_bound(centTab_MC_Drum5F.begin(), centTab_MC_Drum5F.end(), EHF);
-      binpos = it - centTab_MC_Drum5F.begin();
+    case Drum5F:
+      binpos = std::upper_bound(centTab_MC_Drum5F.begin(), centTab_MC_Drum5F.end(), EHF) - centTab_MC_Drum5F.begin();
       binpos = nbinscentTab_MC - 1 - binpos;
-      return (int) (200.*((double)binPos)/((double)nbinscentTab_MC);
-    case 2:
-      auto it = std::upper_bound(centTab_MC_Cymbal5F.begin(), centTab_MC_Cymbal5F.end(), EHF);
-      binpos = it - centTab_MC_Cymbal5F.begin();
+      return (int) (200.*((double)binpos)/((double)nbinscentTab_MC));
+    case Cymbal5F:
+      binpos = std::upper_bound(centTab_MC_Cymbal5F.begin(), centTab_MC_Cymbal5F.end(), EHF) - centTab_MC_Cymbal5F.begin();
       binpos = nbinscentTab_MC - 1 - binpos;
-      return (int) (200.*((double)binPos)/((double)nbinscentTab_MC);
-    case 3:
-      auto it = std::upper_bound(centTab_MC_Cymbal5Ev8.begin(), centTab_MC_Cymbal5Ev8.end(), EHF);
-      binpos = it - centTab_MC_Cymbal5Ev8.begin();
+      return (int) (200.*((double)binpos)/((double)nbinscentTab_MC));
+    case Cymbal5Ev8:
+      binpos = std::upper_bound(centTab_MC_Cymbal5Ev8.begin(), centTab_MC_Cymbal5Ev8.end(), EHF) - centTab_MC_Cymbal5Ev8.begin();
       binpos = nbinscentTab_MC - 1 - binpos;
-      return (int) (200.*((double)binPos)/((double)nbinscentTab_MC);
+      return (int) (200.*((double)binpos)/((double)nbinscentTab_MC));
   }
-};
+}
