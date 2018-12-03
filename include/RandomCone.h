@@ -25,6 +25,11 @@ struct randomcone{
   };
 };
 
+// cent tab
+enum centTab{
+  Data=0, Drum5F=1, Cymbal5F=2, Cymbal5Ev8=3
+};
+
 class RandomCone{
 public:
   RandomCone(std::string& input, std::string& output, int& useCentTab){
@@ -93,10 +98,6 @@ private:
   float rcPhi;
   float rcEta;
 
-  // cent tab
-  enum centTab : int{
-    Data=0, Drum5F, Cymbal5F, Cymbal5Ev8
-  };
 
   static const std::vector<std::string> centTabnames;
   centTab centTable_id;

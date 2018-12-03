@@ -62,8 +62,8 @@ void RandomCone::Init(){
   evt_t->SetBranchStatus("*", 0);
   evt_t->SetBranchStatus("hiBin", 1);
   evt_t->SetBranchStatus("hiHF", 1);
-  evt_t->SetBranchStatus("hiBin", &hiBin);
-  evt_t->SetBranchStatus("hiHF", &hiHF);
+  evt_t->SetBranchAddress("hiBin", &hiBin);
+  evt_t->SetBranchAddress("hiHF", &hiHF);
 
   tout = new TTree("randomCone", "randomCone");
   tout->Branch("hiBin", &hiBin, "hiBin/I");
@@ -74,13 +74,16 @@ void RandomCone::Init(){
   rng = new TRandom3();
 
   std::cout << "Init(): nEvents " << nEvents << std::endl;
-  std::cout << "Init(): Initialization Complete! " << nEvents << std::endl;
+  std::cout << "Init(): Initialization Complete! " << std::endl;
 
 }
 
 void RandomCone::Execute(){
   std::vector<randomcone> rc_v;
   for(int ievt=0; ievt<nEvents; ievt++){
+  	if(ievt%1000 == 0){
+	  std::cout << "Execute(): processing event " << ievt << std::endl;
+	}
     rc_v.clear();
 
     pfcand_t->GetEntry(ievt);
@@ -138,22 +141,29 @@ void RandomCone::End(){
 
 int RandomCone::gethiBinfromhiHF(float& EHF){
   int binpos = 0;
+  std::vector<float>::const_iterator it;
   switch(centTable_id){
     case Data:
-      binpos = std::upper_bound(centTab_data.begin(), centTab_data.end(), EHF) - centTab_data.begin();
+      it = std::upper_bound(centTab_data.begin(), centTab_data.end(), EHF);
+	  binpos = (int) (it - centTab_data.begin());
       return 200-binpos;
     case Drum5F:
-      binpos = std::upper_bound(centTab_MC_Drum5F.begin(), centTab_MC_Drum5F.end(), EHF) - centTab_MC_Drum5F.begin();
+      it = std::upper_bound(centTab_MC_Drum5F.begin(), centTab_MC_Drum5F.end(), EHF);
+	  binpos = (int) (it - centTab_MC_Drum5F.begin());
       binpos = nbinscentTab_MC - 1 - binpos;
       return (int) (200.*((double)binpos)/((double)nbinscentTab_MC));
     case Cymbal5F:
-      binpos = std::upper_bound(centTab_MC_Cymbal5F.begin(), centTab_MC_Cymbal5F.end(), EHF) - centTab_MC_Cymbal5F.begin();
+      it = std::upper_bound(centTab_MC_Cymbal5F.begin(), centTab_MC_Cymbal5F.end(), EHF);
+	  binpos = (int) (it - centTab_MC_Cymbal5F.begin());
       binpos = nbinscentTab_MC - 1 - binpos;
       return (int) (200.*((double)binpos)/((double)nbinscentTab_MC));
     case Cymbal5Ev8:
-      binpos = std::upper_bound(centTab_MC_Cymbal5Ev8.begin(), centTab_MC_Cymbal5Ev8.end(), EHF) - centTab_MC_Cymbal5Ev8.begin();
+      it = std::upper_bound(centTab_MC_Cymbal5Ev8.begin(), centTab_MC_Cymbal5Ev8.end(), EHF);
+	  binpos = (int) (it - centTab_MC_Cymbal5Ev8.begin());
       binpos = nbinscentTab_MC - 1 - binpos;
       return (int) (200.*((double)binpos)/((double)nbinscentTab_MC));
+	default:
+	  return hiBin;
   }
 }
 
