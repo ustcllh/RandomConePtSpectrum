@@ -8,35 +8,65 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TRandom3.h"
+
+#define PI 3.1415926
+
+struct randomcone{
+  float eta;
+  float phi;
+  float pt;
+
+  // constructor
+  randomcone(float rcEta, float rcPhi): eta(rcEta), phi(rcPhi), pt(0){};
+  // compare function
+  bool operator<(randomcone other){
+    return pt<other.pt;
+  };
+};
 
 class RandomCone{
 public:
   RandomCone(std::string& input, std::string& output, int& useCentTab){
     input_str = TString(input);
     output_str = TString(output);
-    centTable_id = useCentTab;
+    centTable_id = (centTab) useCentTab;
   };
 
-  void Init(){};
-  void Execute(){};
-  void End(){};
+  void Init();
+  void Execute();
+  void End();
 
-  int gethiBinfromhiHF(float EHF){return hiBin;};
+  int gethiBinfromhiHF(float& EHF);
 
-  float deltaR(float eta1, float phi1, float eta2, float phi2){
+  float deltaR(float& eta1, float& phi1, float& eta2, float& phi2){
     float dr = std::sqrt(std::pow(eta1-eta2, 2) + std::pow(phi1-phi2, 2));
     return dr;
+  };
+
+  bool globalSelection(){
+    return pprimaryVertexFilter && phfCoincFilter2Th4 && pclusterCompatibilityFilter;
   };
 
 private:
   TString input_str;
   TString output_str;
-  int centTable_id;
 
   TFile* input_f;
   TFile* output_f;
 
   int nEvents;
+
+  // random number generator
+  TRandom3* rng;
+
+  // random cone selection config
+  static const int nrc;
+  static const float etaMax;
+  static const float etaMin;
+  static const float phiMax;
+  static const float phiMin;
+  static const float rcSize;
 
   // pf cand tree
   TTree* pfcand_t;
@@ -63,6 +93,14 @@ private:
   float rcPhi;
   float rcEta;
 
+  // cent tab
+  enum centTab : int{
+    Data=0, Drum5F, Cymbal5F, Cymbal5Ev8
+  };
+
+  static const std::vector<std::string> centTabnames;
+  centTab centTable_id;
+
   static const int nbinscentTab_data = 201;
   static const std::vector<float> centTab_data;
 
@@ -73,6 +111,16 @@ private:
 
 
 };
+// random cone selection config
+const int RandomCone::nrc = 23;
+const float RandomCone::etaMax = 1.3;
+const float RandomCone::etaMin = -1.3;
+const float RandomCone::phiMax = PI;
+const float RandomCone::phiMin = -PI;
+const float RandomCone::rcSize = 0.4;
+
+// centrality tables
+const std::vector<std::string> RandomCone::centTabnames = {"Data", "Drum5F", "Cymbal5F", "Cymbal5Ev8"};
 
 const std::vector<float> RandomCone::centTab_data = {0, 11.4416, 12.1458, 12.7896, 13.4615, 14.0845, 14.7092, 15.3469, 16.0376, 16.686, 17.4067, 18.1092, 18.85, 19.6033, 20.3848, 21.1547, 21.9537, 22.7789, 23.6197, 24.5323, 25.5301, 26.5972, 27.6021, 28.6306, 29.6685, 30.8588, 32.1082, 33.3274, 34.5643, 35.9569, 37.2992, 38.7241, 40.22, 41.8977, 43.6106, 45.3499, 47.1777, 49.0889, 51.0998, 53.1554, 55.2419, 57.4508, 59.7639, 62.1935, 64.7132, 67.2647, 69.9241, 72.7119, 75.6242, 78.6836, 81.782, 85.0615, 88.4518, 91.9302, 95.5374, 99.261, 103.063, 107.193, 111.313, 115.654, 120.229, 125.022, 129.784, 134.883, 140.165, 145.465, 150.958, 156.669, 162.492, 168.484, 174.725, 181.162, 187.794, 194.748, 201.75, 209.116, 216.782, 224.48, 232.246, 240.531, 248.861, 257.506, 266.394, 275.631, 285.197, 294.963, 305.005, 315.031, 325.839, 336.69, 347.625, 358.913, 370.586, 382.313, 394.694, 407.319, 420.059, 432.928, 446.156, 459.654, 473.284, 487.875, 502.63, 517.402, 532.581, 548.157, 563.809, 580.161, 596.567, 613.599, 630.764, 648.503, 666.645, 685.007, 703.55, 722.396, 741.724, 761.388, 781.623, 801.823, 822.656, 844.047, 865.768, 887.74, 910.113, 933.149, 955.614, 979.289, 1003.03, 1027.94, 1053.22, 1078.65, 1104.92, 1131.32, 1158.85, 1186.17, 1213.87, 1242.34, 1270.73, 1300.3, 1330.7, 1360.76, 1391.64, 1422.88, 1454.82, 1487.43, 1520.32, 1554.38, 1589, 1623.8, 1658.38, 1693.92, 1729.78, 1765.83, 1802.72, 1839.96, 1877.58, 1916.96, 1956.59, 1997.45, 2039.41, 2081.63, 2124.22, 2166.32, 2210.45, 2255.92, 2302.07, 2347.31, 2394.12, 2443.6, 2492.33, 2541.85, 2592.7, 2643.83, 2696.46, 2750.58, 2804.85, 2861.01, 2918.08, 2975.71, 3034.69, 3094.43, 3155.59, 3219.19, 3284.14, 3350.76, 3417.36, 3486.82, 3557.98, 3630.9, 3706.12, 3780.93, 3860.1, 3942.22, 4027.03, 4114.06, 4203.13, 4298.1, 4398.53, 4524.65, 5166.42};
 
