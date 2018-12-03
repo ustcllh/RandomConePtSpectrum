@@ -12,7 +12,7 @@ RandomCone.o: $(SRC)/RandomCone.C
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(CPPFLAG) $(ROOTFLAG)
 
 runRandomConePtSpectrum: runRandomConePtSpectrum.C RandomCone.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(ROOTFLAG)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(CPPFLAG) $(ROOTFLAG)
 
 .PHONY:
 	clean
